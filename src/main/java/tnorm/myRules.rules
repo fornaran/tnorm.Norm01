@@ -1,0 +1,150 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix event: <http://www.people.usi.ch/fornaran/ontology/event#>
+@prefix time: <http://www.w3.org/2006/time#>
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+
+[N01_ProductionRule1_ACTIVATE:
+    //the priority of the rule is the lowest
+    isSalience(0)
+
+    (?e1 rdf:type event:RestrictedTrafficAreaAccess)
+    (?e1 event:hasVehicle ?vehicle)
+    (?vehicle event:vehicleOwner ?agent)
+
+    (?e1 event:atTime ?inst1)
+    (?inst1 time:inXSDDateTimeStamp ?t1)
+    //check that ?t1 is between 7am and 7pm
+    checkTime(?t1)
+
+    noValue(event:norm01 event:exceptionToNorm ?e1)
+    //check that ?t1 is elapsed
+    greaterThanNow(?t1)
+
+    addDeadline(?t1,"P1D"^^http://www.w3.org/2001/XMLSchema#duration,?tEnd)
+    getCounter(?counter)
+    uriConcat(event: dr01_ ?counter ?name)
+    uriConcat(event: tCreationObl01_ ?counter ?teCreation)
+    uriConcat(event: deadlineObl01_ ?counter ?teEnd)
+
+    noValue(?dr event:activated ?e1)
+
+    ->
+
+    (?name rdf:type event:DeonticRelation)
+    (?name event:isGenerated event:norm01)
+    (?name event:activated ?e1)
+    (?name event:debtor ?agent)
+
+    (?teCreation rdf:type time:Instant)
+    (?teCreation time:inXSDDateTimeStamp ?t1)
+    (?name event:creationTime ?teCreation)
+
+    (?teEnd rdf:type time:Instant)
+    (?teEnd time:inXSDDateTimeStamp ?tEnd)
+    (?name event:timeEnd ?teEnd)
+
+]
+
+[N01_ProductionRule2_FULFILL:
+    isSalience(0)
+
+    (?dr rdf:type event:DeonticRelation)
+    (?dr event:creationTime ?teCreation)
+    (?teCreation time:inXSDDateTimeStamp ?tCreation)
+    (?dr event:timeEnd ?teEnd)
+    (?teEnd time:inXSDDateTimeStamp ?tEnd)
+
+    (?dr event:activated ?e1)
+    (?e1 rdf:type event:RestrictedTrafficAreaAccess)
+
+    (?payment rdf:type event:Payment)
+    (?payment event:reason ?e1)
+    (?payment event:atTime ?tePayment)
+    (?tePayment time:inXSDDateTimeStamp ?tPayment)
+
+    teGreaterThan(?tPayment ?tCreation)
+    teGreaterThan(?tEnd ?tPayment)
+
+    (?e1 event:hasVehicle ?vehicle)
+    (?vehicle event:vehicleOwner ?agent)
+
+    greaterThanNow(?tPayment)
+    getNow(?now)
+
+    noValue(?dr event:violated)
+    noValue(?dr event:fulfilled)
+
+    ->
+
+    (?agent event:fulfills ?dr)
+    //(?dr event:fulfilled ?payment)
+    (?dr event:fulfilled ?tPayment)
+]
+
+[N01_ProductionRule3_VIOLATE:
+    isSalience(0)
+
+    (?dr rdf:type event:DeonticRelation)
+    (?dr event:creationTime ?teCreation)
+    (?teCreation time:inXSDDateTimeStamp ?tCreation)
+    (?dr event:timeEnd ?teEnd)
+    (?teEnd time:inXSDDateTimeStamp ?tEnd)
+
+    (?obl01n event:activated ?event)
+    (?event rdf:type event:RestrictedTrafficAreaAccess)
+    (?event event:hasVehicle ?vehicle)
+    (?vehicle event:vehicleOwner ?agent)
+
+    greaterThanNow(?tEnd)
+    getNow(?now)
+
+    noValue(?dr event:violated)
+    noValue(?dr event:fulfilled)
+
+    ->
+
+    (?agent event:violates ?dr)
+    (?dr event:violated ?tEnd)
+]
+
+[EXCEPTION01:
+    isSalience(1)
+
+    (?e1 rdf:type event:RestrictedTrafficAreaAccess)
+    (?e1 event:atTime ?te1)
+    (?te1 time:inXSDDateTimeStamp ?t1)
+    checkTime(?t1)
+
+    (?e1 event:hasVehicle ?vehicle)
+    //(?vehicle event:vehicleOwner event:Billy)
+    (?vehicle rdf:type event:Ambulance)
+
+    noValue(event:norm01 event:exceptionToException ?e1)
+
+    greaterThanNow(?t1)
+
+    ->
+
+    (event:norm01 event:exceptionToNorm ?e1)
+]
+
+[EXCEPTION02:
+    isSalience(2)
+
+    (?e1 rdf:type event:RestrictedTrafficAreaAccess)
+    (?e1 event:atTime ?te1)
+    (?te1 time:inXSDDateTimeStamp ?t1)
+    checkTime(?t1)
+
+    (?e1 event:hasVehicle ?vehicle)
+    (?vehicle event:vehicleOwner event:Billy)
+
+    isChristmas(?t1)
+
+    greaterThanNow(?t1)
+
+    ->
+
+    (event:norm01 event:exceptionToException ?e1)
+]
+
