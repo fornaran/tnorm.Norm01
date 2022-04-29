@@ -3,4 +3,4 @@ Simulation of the fulfillment or the violation of Norm01 that regulates the acce
 
 File myRules.rules contains the productions rules that represent Norm01.
 
-File eventToWrite.owl contains the results of the simuation of Norm01 when 4 access events and 1 pay event are performed.
+File eventToWrite.owl contains the results of the simuation of Norm01 when 4 access actions to the limited traffic area and 1 pay action are performed.
